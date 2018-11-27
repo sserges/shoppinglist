@@ -2,7 +2,7 @@ const electron = require('electron');
 const url = require('url');
 const path = require('path');
 
-const {app, BrowserWindow, Menu} = electron;
+const {app, BrowserWindow, Menu, ipcMain} = electron;
 
 let mainWindow;
 let addWindow;
@@ -50,6 +50,12 @@ function createAddWindow() {
 	});
 }
 
+// Catch item:add
+ipcMain.on('item:add', function(e, item) {
+	mainWindow.webContents.send('item:add', item);
+	addWindow.close();
+});
+
 // Create menu template
 const mainMenuTemplate = [
 	{
@@ -57,12 +63,17 @@ const mainMenuTemplate = [
 		submenu:[
 			{
 				label: 'Add Item',
+				accelerator: process.platform == 'darwin' ? 'Command+N' : 'Ctrl+N',
 				click() {
 					createAddWindow();
 				}
 			},
 			{
 				label: 'Clear Items',
+				accelerator: process.platform == 'darwin' ? 'Command+L' : 'Ctrl+L',
+				click() {
+					mainWindow.webContents.send('item:clear');
+				}
 			},
 			{
 				label: 'Quit',
